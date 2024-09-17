@@ -9,7 +9,7 @@
 # source scl_source enable gcc-toolset-11
 # module load hpcx-2.7.0/hpcx-ompi
 # module load openmpi/4.1.5
-src="louvain-communities-openmp"
+src="louvain-split-communities-openmp"
 out="$HOME/Logs/$src$1.log"
 ulimit -s unlimited
 printf "" > "$out"
