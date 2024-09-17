@@ -29,11 +29,11 @@ using std::max;
  * @param fa is vertex allowed to be updated? (u)
  * @returns louvain result
  */
-template <int SPLIT=0, bool DYNAMIC=false, class FLAG=char, class G, class FI, class FM, class FA>
+template <int SPLIT=0, bool DYNAMIC=false, class G, class FI, class FM, class FA>
 inline auto louvainSplitLastInvokeOmp(const G& x, const LouvainOptions& o, FI fi, FM fm, FA fa) {
   using  K = typename G::key_type;
   using  W = LOUVAIN_WEIGHT_TYPE;
-  using  B = FLAG;
+  using  B = char;
   // Options.
   double R = o.resolution;
   int    L = o.maxIterations, l = 0;
@@ -117,10 +117,10 @@ inline auto louvainSplitLastInvokeOmp(const G& x, const LouvainOptions& o, FI fi
         else         louvainRenumberCommunitiesOmpW(vcom, cv.degrees, bufk, y);
         if (isFirst) {}
         else         louvainLookupCommunitiesOmpU(ucom, vcom);
-        cv.respan(CN); z.respan(CN);
-        if (isFirst) louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, x, ucom);
-        else         louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, y, vcom);
         ta += measureDuration([&]() {
+          cv.respan(CN); z.respan(CN);
+          if (isFirst) louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, x, ucom);
+          else         louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, y, vcom);
           if (isFirst) louvainAggregateOmpW(z.offsets, z.degrees, z.edgeKeys, z.edgeValues, bufs, vcs, vcout, x, ucom, cv.offsets, cv.edgeKeys);
           else         louvainAggregateOmpW(z.offsets, z.degrees, z.edgeKeys, z.edgeValues, bufs, vcs, vcout, y, vcom, cv.offsets, cv.edgeKeys);
         });
@@ -165,11 +165,11 @@ inline auto louvainSplitLastInvokeOmp(const G& x, const LouvainOptions& o, FI fi
  * @param fa is vertex allowed to be updated? (u)
  * @returns louvain result
  */
-template <int SPLIT=0, bool DYNAMIC=false, class FLAG=char, class G, class FI, class FM, class FA>
+template <int SPLIT=0, bool DYNAMIC=false, class G, class FI, class FM, class FA>
 inline auto louvainSplitIterationInvokeOmp(const G& x, const LouvainOptions& o, FI fi, FM fm, FA fa) {
   using  K = typename G::key_type;
   using  W = LOUVAIN_WEIGHT_TYPE;
-  using  B = FLAG;
+  using  B = char;
   // Options.
   double R = o.resolution;
   int    L = o.maxIterations, l = 0;
@@ -268,10 +268,10 @@ inline auto louvainSplitIterationInvokeOmp(const G& x, const LouvainOptions& o, 
         else         louvainRenumberCommunitiesOmpW(vcom, cv.degrees, bufk, y);
         if (isFirst) {}
         else         louvainLookupCommunitiesOmpU(ucom, vcom);
-        cv.respan(CN); z.respan(CN);
-        if (isFirst) louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, x, ucom);
-        else         louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, y, vcom);
         ta += measureDuration([&]() {
+          cv.respan(CN); z.respan(CN);
+          if (isFirst) louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, x, ucom);
+          else         louvainCommunityVerticesOmpW(cv.offsets, cv.degrees, cv.edgeKeys, bufk, y, vcom);
           if (isFirst) louvainAggregateOmpW(z.offsets, z.degrees, z.edgeKeys, z.edgeValues, bufs, vcs, vcout, x, ucom, cv.offsets, cv.edgeKeys);
           else         louvainAggregateOmpW(z.offsets, z.degrees, z.edgeKeys, z.edgeValues, bufs, vcs, vcout, y, vcom, cv.offsets, cv.edgeKeys);
         });
@@ -313,17 +313,18 @@ inline auto louvainSplitIterationInvokeOmp(const G& x, const LouvainOptions& o, 
  * @param o louvain options
  * @returns louvain result
  */
-template <int SPLIT=0, class FLAG=char, class G>
+template <int SPLIT=0, class G>
 inline auto louvainSplitLastStaticOmp(const G& x, const LouvainOptions& o={}) {
+  using B = char;
   auto fi = [&](auto& vcom, auto& vtot, auto& ctot)  {
     louvainVertexWeightsOmpW(vtot, x);
     louvainInitializeOmpW(vcom, ctot, x, vtot);
   };
   auto fm = [ ](auto& vaff, const auto& vcom, const auto& vtot, const auto& ctot, auto& vcs,  auto& vcout) {
-    fillValueOmpU(vaff, FLAG(1));
+    fillValueOmpU(vaff, B(1));
   };
   auto fa = [ ](auto u) { return true; };
-  return louvainSplitLastInvokeOmp<SPLIT, false, FLAG>(x, o, fi, fm, fa);
+  return louvainSplitLastInvokeOmp<SPLIT, false>(x, o, fi, fm, fa);
 }
 
 
@@ -333,17 +334,18 @@ inline auto louvainSplitLastStaticOmp(const G& x, const LouvainOptions& o={}) {
  * @param o louvain options
  * @returns louvain result
  */
-template <int SPLIT=0, class FLAG=char, class G>
+template <int SPLIT=0, class G>
 inline auto louvainSplitIterationStaticOmp(const G& x, const LouvainOptions& o={}) {
+  using B = char;
   auto fi = [&](auto& vcom, auto& vtot, auto& ctot)  {
     louvainVertexWeightsOmpW(vtot, x);
     louvainInitializeOmpW(vcom, ctot, x, vtot);
   };
   auto fm = [ ](auto& vaff, const auto& vcom, const auto& vtot, const auto& ctot, auto& vcs,  auto& vcout) {
-    fillValueOmpU(vaff, FLAG(1));
+    fillValueOmpU(vaff, B(1));
   };
   auto fa = [ ](auto u) { return true; };
-  return louvainSplitIterationInvokeOmp<SPLIT, false, FLAG>(x, o, fi, fm, fa);
+  return louvainSplitIterationInvokeOmp<SPLIT, false>(x, o, fi, fm, fa);
 }
 #endif
 #pragma endregion
