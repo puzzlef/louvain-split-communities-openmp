@@ -21,11 +21,11 @@ using std::vector;
  * @param x given graph
  * @param vdom community each vertex belongs to
  */
-template <bool PRUNE=false, class B, class G, class K>
+template <bool PRUNE=false, int CHUNK_SIZE=2048, class B, class G, class K>
 inline void splitDisconnectedCommunitiesLpaOmpW(vector<K>& vcom, vector<B>& vaff, const G& x, const vector<K>& vdom) {
   size_t S = x.span();
   // Initialize each vertex to its own label/subcommunity.
-  #pragma omp parallel for schedule(static, 2048)
+  #pragma omp parallel for schedule(static, CHUNK_SIZE)
   for (K u=0; u<S; ++u) {
     vcom[u] = u;
     if constexpr (PRUNE) vaff[u] = B(1);
@@ -33,7 +33,7 @@ inline void splitDisconnectedCommunitiesLpaOmpW(vector<K>& vcom, vector<B>& vaff
   // Perform label propagation within each community.
   while (true) {
     size_t ndel = 0;
-    #pragma omp parallel for schedule(dynamic, 2048) reduction(+:ndel)
+    #pragma omp parallel for schedule(dynamic, CHUNK_SIZE) reduction(+:ndel)
     for (K u=0; u<S; ++u) {
       if (!x.hasVertex(u)) continue;
       if (PRUNE && !vaff[u]) continue;
@@ -63,11 +63,11 @@ inline void splitDisconnectedCommunitiesLpaOmpW(vector<K>& vcom, vector<B>& vaff
  * @param x given graph
  * @param vdom community each vertex belongs to
  */
-template <class B, class G, class K>
+template <int CHUNK_SIZE=2048, class B, class G, class K>
 inline void splitDisconnectedCommunitiesDfsOmpW(vector<K>& vcom, vector<B>& vis, const G& x, const vector<K>& vdom) {
   size_t S = x.span();
   // Initialize each vertex to its own label/subcommunity.
-  #pragma omp parallel for schedule(static, 2048)
+  #pragma omp parallel for schedule(static, CHUNK_SIZE)
   for (K u=0; u<S; ++u) {
     vcom[u] = u;
     vis[u]  = B();
@@ -99,11 +99,11 @@ inline void splitDisconnectedCommunitiesDfsOmpW(vector<K>& vcom, vector<B>& vis,
  * @param x given graph
  * @param vdom community each vertex belongs to
  */
-template <class B, class G, class K>
+template <int CHUNK_SIZE=2048, class B, class G, class K>
 inline void splitDisconnectedCommunitiesBfsOmpW(vector<K>& vcom, vector<B>& vis, vector<vector<K>*>& us, vector<vector<K>*>& vs, const G& x, const vector<K>& vdom) {
   size_t S = x.span();
   // Initialize each vertex to its own label/subcommunity.
-  #pragma omp parallel for schedule(static, 2048)
+  #pragma omp parallel for schedule(static, CHUNK_SIZE)
   for (K u=0; u<S; ++u) {
     vcom[u] = u;
     vis[u]  = B();

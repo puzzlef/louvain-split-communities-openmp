@@ -29,7 +29,7 @@ using std::max;
  * @param fa is vertex allowed to be updated? (u)
  * @returns louvain result
  */
-template <int SPLIT=0, bool DYNAMIC=false, class G, class FI, class FM, class FA>
+template <int SPLIT=0, int SPLIT_CHUNK=2048, bool DYNAMIC=false, class G, class FI, class FM, class FA>
 inline auto louvainSplitLastInvokeOmp(const G& x, const LouvainOptions& o, FI fi, FM fm, FA fa) {
   using  K = typename G::key_type;
   using  W = LOUVAIN_WEIGHT_TYPE;
@@ -138,10 +138,10 @@ inline auto louvainSplitLastInvokeOmp(const G& x, const LouvainOptions& o, FI fi
       if (p<=1) t1 = timeNow();
       tp += duration(t0, t1);
       ts += measureDuration([&]() {
-        if (SPLIT==1)      { splitDisconnectedCommunitiesLpaOmpW<false>(vcom, vaff, x, ucom);  swap(ucom, vcom); }
-        else if (SPLIT==2) { splitDisconnectedCommunitiesLpaOmpW<true> (vcom, vaff, x, ucom);  swap(ucom, vcom); }
-        else if (SPLIT==3) { splitDisconnectedCommunitiesDfsOmpW(vcom, vaff, x, ucom);         swap(ucom, vcom); }
-        else if (SPLIT==4) { splitDisconnectedCommunitiesBfsOmpW(vcom, vaff, us, vs, x, ucom); swap(ucom, vcom); }
+        if (SPLIT==1)      { splitDisconnectedCommunitiesLpaOmpW<false, SPLIT_CHUNK>(vcom, vaff, x, ucom);  swap(ucom, vcom); }
+        else if (SPLIT==2) { splitDisconnectedCommunitiesLpaOmpW<true,  SPLIT_CHUNK>(vcom, vaff, x, ucom);  swap(ucom, vcom); }
+        else if (SPLIT==3) { splitDisconnectedCommunitiesDfsOmpW<SPLIT_CHUNK>(vcom, vaff, x, ucom);         swap(ucom, vcom); }
+        else if (SPLIT==4) { splitDisconnectedCommunitiesBfsOmpW<SPLIT_CHUNK>(vcom, vaff, us, vs, x, ucom); swap(ucom, vcom); }
       });
     });
   }, o.repeat);
@@ -165,7 +165,7 @@ inline auto louvainSplitLastInvokeOmp(const G& x, const LouvainOptions& o, FI fi
  * @param fa is vertex allowed to be updated? (u)
  * @returns louvain result
  */
-template <int SPLIT=0, bool DYNAMIC=false, class G, class FI, class FM, class FA>
+template <int SPLIT=0, int SPLIT_CHUNK=2048, bool DYNAMIC=false, class G, class FI, class FM, class FA>
 inline auto louvainSplitIterationInvokeOmp(const G& x, const LouvainOptions& o, FI fi, FM fm, FA fa) {
   using  K = typename G::key_type;
   using  W = LOUVAIN_WEIGHT_TYPE;
@@ -244,16 +244,16 @@ inline auto louvainSplitIterationInvokeOmp(const G& x, const LouvainOptions& o, 
         });
         ts += measureDuration([&]() {
           if (isFirst) {
-            if (SPLIT==1)      { splitDisconnectedCommunitiesLpaOmpW<false>(tcom, vaff, x, ucom);  swap(ucom, tcom); }
-            else if (SPLIT==2) { splitDisconnectedCommunitiesLpaOmpW<true> (tcom, vaff, x, ucom);  swap(ucom, tcom); }
-            else if (SPLIT==3) { splitDisconnectedCommunitiesDfsOmpW(tcom, vaff, x, ucom);         swap(ucom, tcom); }
-            else if (SPLIT==4) { splitDisconnectedCommunitiesBfsOmpW(tcom, vaff, us, vs, x, ucom); swap(ucom, tcom); }
+            if (SPLIT==1)      { splitDisconnectedCommunitiesLpaOmpW<false, SPLIT_CHUNK>(tcom, vaff, x, ucom);  swap(ucom, tcom); }
+            else if (SPLIT==2) { splitDisconnectedCommunitiesLpaOmpW<true,  SPLIT_CHUNK>(tcom, vaff, x, ucom);  swap(ucom, tcom); }
+            else if (SPLIT==3) { splitDisconnectedCommunitiesDfsOmpW<SPLIT_CHUNK>(tcom, vaff, x, ucom);         swap(ucom, tcom); }
+            else if (SPLIT==4) { splitDisconnectedCommunitiesBfsOmpW<SPLIT_CHUNK>(tcom, vaff, us, vs, x, ucom); swap(ucom, tcom); }
           }
           else {
-            if (SPLIT==1)      { splitDisconnectedCommunitiesLpaOmpW<false>(tcom, vaff, y, vcom);  swap(vcom, tcom); }
-            else if (SPLIT==2) { splitDisconnectedCommunitiesLpaOmpW<true> (tcom, vaff, y, vcom);  swap(vcom, tcom); }
-            else if (SPLIT==3) { splitDisconnectedCommunitiesDfsOmpW(tcom, vaff, y, vcom);         swap(vcom, tcom); }
-            else if (SPLIT==4) { splitDisconnectedCommunitiesBfsOmpW(tcom, vaff, us, vs, y, vcom); swap(vcom, tcom); }
+            if (SPLIT==1)      { splitDisconnectedCommunitiesLpaOmpW<false, SPLIT_CHUNK>(tcom, vaff, y, vcom);  swap(vcom, tcom); }
+            else if (SPLIT==2) { splitDisconnectedCommunitiesLpaOmpW<true,  SPLIT_CHUNK>(tcom, vaff, y, vcom);  swap(vcom, tcom); }
+            else if (SPLIT==3) { splitDisconnectedCommunitiesDfsOmpW<SPLIT_CHUNK>(tcom, vaff, y, vcom);         swap(vcom, tcom); }
+            else if (SPLIT==4) { splitDisconnectedCommunitiesBfsOmpW<SPLIT_CHUNK>(tcom, vaff, us, vs, y, vcom); swap(vcom, tcom); }
           }
         });
         l += max(m, 1); ++p;
@@ -313,7 +313,7 @@ inline auto louvainSplitIterationInvokeOmp(const G& x, const LouvainOptions& o, 
  * @param o louvain options
  * @returns louvain result
  */
-template <int SPLIT=0, class G>
+template <int SPLIT=0, int SPLIT_CHUNK=2048, class G>
 inline auto louvainSplitLastStaticOmp(const G& x, const LouvainOptions& o={}) {
   using B = char;
   auto fi = [&](auto& vcom, auto& vtot, auto& ctot)  {
@@ -324,7 +324,7 @@ inline auto louvainSplitLastStaticOmp(const G& x, const LouvainOptions& o={}) {
     fillValueOmpU(vaff, B(1));
   };
   auto fa = [ ](auto u) { return true; };
-  return louvainSplitLastInvokeOmp<SPLIT, false>(x, o, fi, fm, fa);
+  return louvainSplitLastInvokeOmp<SPLIT, SPLIT_CHUNK, false>(x, o, fi, fm, fa);
 }
 
 
@@ -334,7 +334,7 @@ inline auto louvainSplitLastStaticOmp(const G& x, const LouvainOptions& o={}) {
  * @param o louvain options
  * @returns louvain result
  */
-template <int SPLIT=0, class G>
+template <int SPLIT=0, int SPLIT_CHUNK=2048, class G>
 inline auto louvainSplitIterationStaticOmp(const G& x, const LouvainOptions& o={}) {
   using B = char;
   auto fi = [&](auto& vcom, auto& vtot, auto& ctot)  {
@@ -345,7 +345,7 @@ inline auto louvainSplitIterationStaticOmp(const G& x, const LouvainOptions& o={
     fillValueOmpU(vaff, B(1));
   };
   auto fa = [ ](auto u) { return true; };
-  return louvainSplitIterationInvokeOmp<SPLIT, false>(x, o, fi, fm, fa);
+  return louvainSplitIterationInvokeOmp<SPLIT, SPLIT_CHUNK, false>(x, o, fi, fm, fa);
 }
 #endif
 #pragma endregion
