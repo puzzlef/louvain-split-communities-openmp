@@ -72,30 +72,10 @@ void runExperiment(const G& x) {
     );
   };
   // Get community memberships on original graph (static).
-  {
-    auto a0 = louvainStaticOmp(x, {repeat});
-    flog(a0, "louvainStaticOmp");
-  }
-  {
-    auto a1 = louvainSplitLastStaticOmp<1>(x, {repeat});
-    flog(a1, "louvainSplitLastStaticOmp1");
-    auto a2 = louvainSplitLastStaticOmp<2>(x, {repeat});
-    flog(a2, "louvainSplitLastStaticOmp2");
-    // auto a3 = louvainSplitLastStaticOmp<3>(x, {repeat});
-    // flog(a3, "louvainSplitLastStaticOmp3");
-    auto a4 = louvainSplitLastStaticOmp<4>(x, {repeat});
-    flog(a4, "louvainSplitLastStaticOmp4");
-  }
-  {
-    auto a5 = louvainSplitIterationStaticOmp<1>(x, {repeat});
-    flog(a5, "louvainSplitIterationStaticOmp1");
-    auto a6 = louvainSplitIterationStaticOmp<2>(x, {repeat});
-    flog(a6, "louvainSplitIterationStaticOmp2");
-    // auto a7 = louvainSplitIterationStaticOmp<3>(x, {repeat});
-    // flog(a7, "louvainSplitIterationStaticOmp3");
-    auto a8 = louvainSplitIterationStaticOmp<4>(x, {repeat});
-    flog(a8, "louvainSplitIterationStaticOmp4");
-  }
+  auto a0 = louvainStaticOmp(x, {repeat});
+  flog(a0, "louvainStaticOmp");
+  auto a1 = louvainSplitStaticOmp(x, {repeat});
+  flog(a1, "louvainSplitStaticOmp");
 }
 
 
@@ -117,7 +97,7 @@ int main(int argc, char **argv) {
   LOG("Loading graph %s ...\n", file);
   DiGraph<K, None, V> x;
   readMtxOmpW(x, file, weighted); LOG(""); println(x);
-  if (!symmetric) { x = symmetricizeOmp(x); LOG(""); print(x); printf(" (symmetricize)\n"); }
+  if (!symmetric) { symmetrizeOmpU(x); LOG(""); print(x); printf(" (symmetrize)\n"); }
   runExperiment(x);
   printf("\n");
   return 0;
