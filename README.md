@@ -109,7 +109,7 @@ Note that each branch in this repository contains code for a specific experiment
 [![](https://i.imgur.com/atJbkL1.png)](https://www.youtube.com/watch?v=yqO7wVBTuLw&pp)<br>
 [![ORG](https://img.shields.io/badge/org-puzzlef-green?logo=Org)](https://puzzlef.github.io)
 [![DOI](https://zenodo.org/badge/519156419.svg)](https://zenodo.org/doi/10.5281/zenodo.6945748)
-
+![](https://ga-beacon.deno.dev/G-KD28SG54JQ:hbAybl6nQFOtmVxW4if3xw/github.com/puzzlef/louvain-split-communities-openmp)
 
 [Prof. Dip Sankar Banerjee]: https://sites.google.com/site/dipsankarban/
 [Prof. Kishore Kothapalli]: https://faculty.iiit.ac.in/~kkishore/
